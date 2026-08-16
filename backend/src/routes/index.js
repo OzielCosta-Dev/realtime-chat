@@ -2,6 +2,8 @@ import { Router } from 'express';
 
 import UserController from '../controllers/UserController.js';
 import SessionController from '../controllers/SessionController.js';
+import RoomController from '../controllers/RoomController.js';
+import MessageController from '../controllers/MessageController.js';
 import authMiddleware from '../middlewares/auth.js';
 
 const routes = new Router();
@@ -16,5 +18,12 @@ routes.post('/sessions', SessionController.store); // login
 routes.use(authMiddleware);
 
 routes.get('/users/me', UserController.show);
+
+routes.get('/rooms', RoomController.index);
+routes.post('/rooms', RoomController.store);
+routes.post('/rooms/:id/join', RoomController.join);
+routes.get('/rooms/:id/members', RoomController.members);
+
+routes.get('/rooms/:id/messages', MessageController.index);
 
 export default routes;

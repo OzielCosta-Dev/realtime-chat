@@ -117,18 +117,18 @@ class User extends Model {
 
   static associate(models) {
     // One user writes many messages.
-    this.hasMany(models.Message, { foreignKey: 'user_id', as: 'messages' });
+    this.hasMany(models.Message, { foreignKey: 'userId', as: 'messages' });
 
     // A user belongs to many rooms, through the join table.
     this.belongsToMany(models.Room, {
       through: models.RoomMember,
-      foreignKey: 'user_id',
-      otherKey: 'room_id',
+      foreignKey: 'userId',
+      otherKey: 'roomId',
       as: 'rooms',
     });
 
     // Rooms this user created.
-    this.hasMany(models.Room, { foreignKey: 'created_by', as: 'createdRooms' });
+    this.hasMany(models.Room, { foreignKey: 'createdBy', as: 'createdRooms' });
   }
 }
 

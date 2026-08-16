@@ -39,14 +39,18 @@ class Room extends Model {
   }
 
   static associate(models) {
-    this.belongsTo(models.User, { foreignKey: 'created_by', as: 'creator' });
+    // foreignKey must be the MODEL ATTRIBUTE name (createdBy), not the column
+    // name (created_by). Passing the column name makes Sequelize define a
+    // second, separate attribute, and every response then carries the same
+    // value twice under both spellings.
+    this.belongsTo(models.User, { foreignKey: 'createdBy', as: 'creator' });
 
-    this.hasMany(models.Message, { foreignKey: 'room_id', as: 'messages' });
+    this.hasMany(models.Message, { foreignKey: 'roomId', as: 'messages' });
 
     this.belongsToMany(models.User, {
       through: models.RoomMember,
-      foreignKey: 'room_id',
-      otherKey: 'user_id',
+      foreignKey: 'roomId',
+      otherKey: 'userId',
       as: 'members',
     });
   }

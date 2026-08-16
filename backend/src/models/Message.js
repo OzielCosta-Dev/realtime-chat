@@ -43,8 +43,8 @@ class Message extends Model {
     // `as: 'author'` is what lets us write
     //   Message.findAll({ include: [{ model: User, as: 'author' }] })
     // and get message.author.name for display.
-    this.belongsTo(models.User, { foreignKey: 'user_id', as: 'author' });
-    this.belongsTo(models.Room, { foreignKey: 'room_id', as: 'room' });
+    this.belongsTo(models.User, { foreignKey: 'userId', as: 'author' });
+    this.belongsTo(models.Room, { foreignKey: 'roomId', as: 'room' });
   }
 }
 
