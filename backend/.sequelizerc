@@ -1,0 +1,11 @@
+// Tells sequelize-cli where our files live, since we don't use its default
+// folder layout. Without this the CLI would look for ./config/config.json,
+// ./models, ./migrations and ./seeders in the project root.
+const path = require('node:path');
+
+module.exports = {
+  config: path.resolve('src', 'config', 'config.cjs'),
+  'models-path': path.resolve('src', 'models'),
+  'migrations-path': path.resolve('src', 'database', 'migrations'),
+  'seeders-path': path.resolve('src', 'database', 'seeders'),
+};

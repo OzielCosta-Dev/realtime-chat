@@ -1,0 +1,46 @@
+import express from 'express';
+import cors from 'cors';
+
+import { sequelize } from './models/index.js';
+
+const app = express();
+
+// Allows the React dev server (a different origin) to call this API.
+// We'll lock this down to a specific origin once the frontend exists.
+app.use(cors());
+
+// Parses incoming JSON bodies into req.body.
+app.use(express.json());
+
+/**
+ * Health check. Deliberately touches the database rather than just returning
+ * 200 — an API that answers "I'm fine" while its database is down is worse
+ * than useless. Docker and deployment platforms poll endpoints like this.
+ */
+app.get('/health', async (_req, res) => {
+  try {
+    await sequelize.authenticate();
+    res.json({ status: 'ok', database: 'connected' });
+  } catch (error) {
+    res.status(503).json({ status: 'error', database: 'disconnected', message: error.message });
+  }
+});
+
+// 404 for anything unmatched above.
+app.use((_req, res) => {
+  res.status(404).json({ error: 'Route not found' });
+});
+
+// Central error handler. Express identifies it by its four arguments —
+// (err, req, res, next) — so `next` must stay even though it's unused.
+// Express 5 forwards rejected promises from async handlers here automatically;
+// in Express 4 you had to catch them yourself or use a wrapper.
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  console.error('[error]', err);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal server error',
+  });
+});
+
+export default app;
