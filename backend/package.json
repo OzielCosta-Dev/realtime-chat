@@ -1,0 +1,14 @@
+{
+  "name": "chat-backend",
+  "version": "1.0.0",
+  "description": "Express + Socket.io API for the real-time chat app",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "node --watch src/server.js",
+    "start": "node src/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

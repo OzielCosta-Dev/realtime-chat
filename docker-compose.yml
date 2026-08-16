@@ -1,0 +1,50 @@
+# For now this file defines ONLY the database.
+# In step 7 we'll add the backend and frontend services here too, so the whole
+# stack starts with a single `docker compose up`.
+
+services:
+  db:
+    # The image to run. `postgres` is the official image from Docker Hub;
+    # `16-alpine` is the tag: Postgres 16 built on Alpine Linux (a small base
+    # image, ~80MB instead of ~450MB). Pinning a version instead of using
+    # `latest` means this project builds the same way in a year.
+    image: postgres:16-alpine
+
+    # A fixed name so `docker ps` output is readable.
+    container_name: chat-db
+
+    # Restart the container if it crashes or if Docker restarts,
+    # but not if we deliberately stopped it.
+    restart: unless-stopped
+
+    # The postgres image reads these on FIRST startup to create the database
+    # and superuser. They're only applied when the data volume is empty.
+    environment:
+      POSTGRES_DB: chat_app
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    # "HOST_PORT:CONTAINER_PORT" — forwards localhost:5432 on your machine
+    # to port 5432 inside the container, so Node can connect to it normally.
+    ports:
+      - "5432:5432"
+
+    # Mount the named volume `postgres-data` at the path where Postgres stores
+    # its data files. Without this, dropping the container would delete the
+    # entire database.
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+    # Docker's own check for whether the DB is actually accepting connections.
+    # `docker ps` will show "healthy" once it passes. In step 7 the backend
+    # service will wait on this so it doesn't boot before the DB is ready.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d chat_app"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+# Declares the named volume. Docker creates and manages it; it persists
+# independently of the container's lifecycle.
+volumes:
+  postgres-data:
