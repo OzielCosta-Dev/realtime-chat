@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 
 import { sequelize } from './models/index.js';
+import routes from './routes/index.js';
 
 const app = express();
 
@@ -26,6 +27,8 @@ app.get('/health', async (_req, res) => {
   }
 });
 
+app.use(routes);
+
 // 404 for anything unmatched above.
 app.use((_req, res) => {
   res.status(404).json({ error: 'Route not found' });
@@ -37,8 +40,17 @@ app.use((_req, res) => {
 // in Express 4 you had to catch them yourself or use a wrapper.
 // eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
+  // A failed model validation is the client's fault, not ours — 400, and
+  // return the specific messages so the UI can show them on the right field.
+  if (err.name === 'SequelizeValidationError') {
+    return res.status(400).json({
+      error: 'Validation failed',
+      details: err.errors.map((e) => ({ field: e.path, message: e.message })),
+    });
+  }
+
   console.error('[error]', err);
-  res.status(err.status || 500).json({
+  return res.status(err.status || 500).json({
     error: err.message || 'Internal server error',
   });
 });

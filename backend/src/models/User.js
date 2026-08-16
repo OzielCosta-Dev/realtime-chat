@@ -1,4 +1,10 @@
 import { Model, DataTypes } from 'sequelize';
+import bcrypt from 'bcryptjs';
+
+// Cost factor for bcrypt. Each +1 doubles the work needed to hash — and to
+// brute-force. 10 is roughly 100ms on modern hardware: slow enough to make
+// offline cracking expensive, fast enough that login feels instant.
+const SALT_ROUNDS = 10;
 
 class User extends Model {
   static initModel(sequelize) {
@@ -25,6 +31,17 @@ class User extends Model {
             isEmail: { msg: 'Must be a valid email address' },
           },
         },
+        // VIRTUAL means "exists on the instance, never stored in a column".
+        // Controllers set `password`; the beforeSave hook below turns it into
+        // `passwordHash`. The plaintext never reaches the database, and no
+        // controller ever has to remember to hash anything.
+        password: {
+          type: DataTypes.VIRTUAL,
+          validate: {
+            len: { args: [8, 128], msg: 'Password must be 8-128 characters' },
+          },
+        },
+
         // Named `passwordHash`, never `password`, so it's obvious at every
         // call site that this is not a plaintext value.
         passwordHash: {
@@ -61,10 +78,41 @@ class User extends Model {
           //   User.scope('withPassword').findOne(...)
           withPassword: { attributes: {} },
         },
+        hooks: {
+          // beforeValidate, NOT beforeSave.
+          //
+          // Sequelize's create lifecycle is:
+          //   beforeValidate -> VALIDATE -> afterValidate -> beforeSave -> INSERT
+          //
+          // passwordHash is `allowNull: false`, so if we hashed in beforeSave
+          // the validation step would already have failed on a null hash.
+          // Hashing here means passwordHash is populated before validation
+          // runs. Fires on create and update alike, so changing a password
+          // goes through exactly the same path as registering.
+          beforeValidate: async (user) => {
+            if (user.password) {
+              user.passwordHash = await bcrypt.hash(user.password, SALT_ROUNDS);
+            }
+          },
+        },
       },
       );
 
     return this;
+  }
+
+  /**
+   * Compares a plaintext attempt against the stored hash.
+   *
+   * bcrypt.compare re-hashes the attempt using the salt embedded in the stored
+   * hash, then compares in constant time — so it leaks no information through
+   * how long it takes to fail.
+   *
+   * Requires the `withPassword` scope, since defaultScope hides the hash.
+   */
+  async checkPassword(plainTextPassword) {
+    if (!this.passwordHash) return false;
+    return bcrypt.compare(plainTextPassword, this.passwordHash);
   }
 
   static associate(models) {
