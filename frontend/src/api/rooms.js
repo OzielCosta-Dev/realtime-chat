@@ -19,3 +19,7 @@ export function joinRoom(roomId) {
 export function getRoomMembers(roomId) {
   return http.get(`/rooms/${roomId}/members`).then((res) => res.data);
 }
+
+export function deleteRoom(roomId) {
+  return http.delete(`/rooms/${roomId}`).then((res) => res.data);
+}

@@ -15,7 +15,7 @@ export default function ProtectedRoute() {
   // flash to /login for a frame while `user` is still null, then bounce
   // back once the check resolves.
   if (isLoading) {
-    return <div className="page-loading">Loading…</div>;
+    return <div className="page-loading">Carregando…</div>;
   }
 
   return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;

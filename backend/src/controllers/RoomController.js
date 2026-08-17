@@ -41,7 +41,7 @@ class RoomController {
     const { id } = req.params;
 
     if (!isUuid(id)) {
-      return res.status(400).json({ error: 'Invalid room id' });
+      return res.status(400).json({ error: 'ID de sala inválido' });
     }
 
     const room = await Room.findByPk(id, {
@@ -49,7 +49,7 @@ class RoomController {
     });
 
     if (!room) {
-      return res.status(404).json({ error: 'Room not found' });
+      return res.status(404).json({ error: 'Sala não encontrada' });
     }
 
     const membership = await RoomMember.findOne({ where: { userId: req.userId, roomId: id } });
@@ -62,12 +62,12 @@ class RoomController {
     const { name, description } = req.body;
 
     if (!name) {
-      return res.status(400).json({ error: 'name is required' });
+      return res.status(400).json({ error: 'O nome é obrigatório' });
     }
 
     const existing = await Room.findOne({ where: { name } });
     if (existing) {
-      return res.status(409).json({ error: 'A room with that name already exists' });
+      return res.status(409).json({ error: 'Já existe uma sala com esse nome' });
     }
 
     try {
@@ -91,7 +91,7 @@ class RoomController {
       return res.status(201).json({ ...room.toJSON(), isMember: true });
     } catch (error) {
       if (error.name === 'SequelizeUniqueConstraintError') {
-        return res.status(409).json({ error: 'A room with that name already exists' });
+        return res.status(409).json({ error: 'Já existe uma sala com esse nome' });
       }
       throw error;
     }
@@ -102,12 +102,12 @@ class RoomController {
     const { id } = req.params;
 
     if (!isUuid(id)) {
-      return res.status(400).json({ error: 'Invalid room id' });
+      return res.status(400).json({ error: 'ID de sala inválido' });
     }
 
     const room = await Room.findByPk(id);
     if (!room) {
-      return res.status(404).json({ error: 'Room not found' });
+      return res.status(404).json({ error: 'Sala não encontrada' });
     }
 
     // findOrCreate makes this idempotent: joining twice is not an error,
@@ -129,7 +129,7 @@ class RoomController {
     const { id } = req.params;
 
     if (!isUuid(id)) {
-      return res.status(400).json({ error: 'Invalid room id' });
+      return res.status(400).json({ error: 'ID de sala inválido' });
     }
 
     const room = await Room.findByPk(id, {
@@ -144,10 +144,52 @@ class RoomController {
     });
 
     if (!room) {
-      return res.status(404).json({ error: 'Room not found' });
+      return res.status(404).json({ error: 'Sala não encontrada' });
     }
 
     return res.json(room.members);
+  }
+
+  /**
+   * DELETE /rooms/:id — creator only.
+   *
+   * Messages and room_members rows are NOT deleted here in application
+   * code — they're removed by the database itself via the ON DELETE
+   * CASCADE foreign keys set up in the migrations back in step 2. One
+   * DELETE statement on rooms, and Postgres cascades the rest atomically;
+   * no risk of a crash between "delete messages" and "delete the room"
+   * leaving orphaned rows, because there's only one statement to begin
+   * with.
+   */
+  async destroy(req, res) {
+    const { id } = req.params;
+
+    if (!isUuid(id)) {
+      return res.status(400).json({ error: 'ID de sala inválido' });
+    }
+
+    const room = await Room.findByPk(id);
+    if (!room) {
+      return res.status(404).json({ error: 'Sala não encontrada' });
+    }
+
+    if (room.createdBy !== req.userId) {
+      return res.status(403).json({ error: 'Apenas quem criou a sala pode excluí-la' });
+    }
+
+    await room.destroy();
+
+    // Anyone with this room open right now (via its live socket
+    // subscription — see backend/src/sockets/index.js) needs to be told
+    // directly: the REST call only reaches the browser tab that clicked
+    // delete, not every other tab currently viewing this room's chat.
+    const io = req.app.get('io');
+    io.to(id).emit('room:deleted', { roomId: id });
+    // Also evicts every socket from the Socket.io room itself, so a stale
+    // membership can't linger in memory after the underlying room is gone.
+    io.in(id).socketsLeave(id);
+
+    return res.status(204).send();
   }
 }
 

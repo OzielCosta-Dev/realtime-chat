@@ -5,7 +5,8 @@ import { SocketProvider } from './context/SocketContext.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 import RegisterPage from './pages/RegisterPage.jsx';
-import RoomsPage from './pages/RoomsPage.jsx';
+import AppLayout from './pages/AppLayout.jsx';
+import RoomsHome from './pages/RoomsHome.jsx';
 import RoomPage from './pages/RoomPage.jsx';
 
 export default function App() {
@@ -22,12 +23,15 @@ export default function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
 
-            {/* A layout route with no `path`: it renders its children only
-                when ProtectedRoute's own logic (auth check) lets them through.
-                Add more protected pages later as siblings inside here. */}
+            {/* Two nested layout routes: ProtectedRoute gates on auth, then
+                AppLayout renders the persistent sidebar around whichever
+                child page matches. AppLayout renders for BOTH "/" and
+                "/rooms/:id" — it's the parent, they're its <Outlet />. */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<RoomsPage />} />
-              <Route path="/rooms/:id" element={<RoomPage />} />
+              <Route element={<AppLayout />}>
+                <Route path="/" element={<RoomsHome />} />
+                <Route path="/rooms/:id" element={<RoomPage />} />
+              </Route>
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

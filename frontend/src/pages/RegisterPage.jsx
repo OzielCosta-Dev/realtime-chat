@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../context/AuthContext.jsx';
 import extractErrorMessage from '../utils/extractErrorMessage.js';
+import Brand from '../components/Brand.jsx';
 import './AuthForm.css';
 
 export default function RegisterPage() {
@@ -39,66 +40,78 @@ export default function RegisterPage() {
 
   return (
     <div className="auth-page">
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <h1>Create an account</h1>
+      <div className="auth-card">
+        <div className="auth-brand">
+          <Brand size="lg" />
+        </div>
 
-        {error && (
-          <p className="auth-error" role="alert">
-            {error}
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="auth-heading">
+            <h1>Criar conta</h1>
+            <p>Leva menos de um minuto</p>
+          </div>
+
+          {error && (
+            <p className="auth-error" role="alert">
+              {error}
+            </p>
+          )}
+
+          <label>
+            Nome
+            <input
+              type="text"
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              autoComplete="name"
+              placeholder="Seu nome"
+              minLength={2}
+              maxLength={80}
+              required
+            />
+          </label>
+
+          <label>
+            E-mail
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              autoComplete="email"
+              placeholder="voce@exemplo.com"
+              required
+            />
+          </label>
+
+          <label>
+            Senha
+            {/* minLength aqui é só uma dica visual — o backend valida de
+                novo, já que uma checagem só no navegador é trivialmente
+                contornável (uma requisição curl direta pula o navegador
+                inteiro). */}
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              autoComplete="new-password"
+              placeholder="Mínimo 8 caracteres"
+              minLength={8}
+              required
+            />
+          </label>
+
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Criando conta…' : 'Criar conta'}
+          </button>
+
+          <p className="auth-switch">
+            Já tem uma conta? <Link to="/login">Entrar</Link>
           </p>
-        )}
-
-        <label>
-          Name
-          <input
-            type="text"
-            name="name"
-            value={form.name}
-            onChange={handleChange}
-            autoComplete="name"
-            minLength={2}
-            maxLength={80}
-            required
-          />
-        </label>
-
-        <label>
-          Email
-          <input
-            type="email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            autoComplete="email"
-            required
-          />
-        </label>
-
-        <label>
-          Password
-          {/* minLength here is just an early hint — the backend re-validates
-              this regardless, since client-side checks are trivially
-              bypassable (e.g. a raw curl request skips the browser
-              entirely). */}
-          <input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            autoComplete="new-password"
-            minLength={8}
-            required
-          />
-        </label>
-
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Creating account…' : 'Create account'}
-        </button>
-
-        <p className="auth-switch">
-          Already have an account? <Link to="/login">Log in</Link>
-        </p>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

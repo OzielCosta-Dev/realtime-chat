@@ -7,7 +7,7 @@ class UserController {
     const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).json({ error: 'name, email and password are required' });
+      return res.status(400).json({ error: 'Nome, e-mail e senha são obrigatórios' });
     }
 
     // Check first so the common case gets a clean 409 instead of a raw
@@ -16,7 +16,7 @@ class UserController {
     // catch block below handles that race.
     const existing = await User.findOne({ where: { email } });
     if (existing) {
-      return res.status(409).json({ error: 'Email already registered' });
+      return res.status(409).json({ error: 'E-mail já cadastrado' });
     }
 
     try {
@@ -29,7 +29,7 @@ class UserController {
       });
     } catch (error) {
       if (error.name === 'SequelizeUniqueConstraintError') {
-        return res.status(409).json({ error: 'Email already registered' });
+        return res.status(409).json({ error: 'E-mail já cadastrado' });
       }
       throw error;
     }
@@ -41,7 +41,7 @@ class UserController {
     const user = await User.findByPk(req.userId);
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: 'Usuário não encontrado' });
     }
 
     return res.json(user);

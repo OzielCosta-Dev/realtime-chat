@@ -19,8 +19,8 @@ class User extends Model {
           type: DataTypes.STRING(80),
           allowNull: false,
           validate: {
-            notEmpty: { msg: 'Name cannot be empty' },
-            len: { args: [2, 80], msg: 'Name must be 2-80 characters' },
+            notEmpty: { msg: 'O nome não pode ficar vazio' },
+            len: { args: [2, 80], msg: 'O nome deve ter entre 2 e 80 caracteres' },
           },
         },
         email: {
@@ -28,7 +28,7 @@ class User extends Model {
           allowNull: false,
           unique: true,
           validate: {
-            isEmail: { msg: 'Must be a valid email address' },
+            isEmail: { msg: 'Informe um e-mail válido' },
           },
         },
         // VIRTUAL means "exists on the instance, never stored in a column".
@@ -38,7 +38,7 @@ class User extends Model {
         password: {
           type: DataTypes.VIRTUAL,
           validate: {
-            len: { args: [8, 128], msg: 'Password must be 8-128 characters' },
+            len: { args: [8, 128], msg: 'A senha deve ter entre 8 e 128 caracteres' },
           },
         },
 

@@ -1,0 +1,29 @@
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.brand-mark {
+  color: var(--color-primary);
+}
+
+.brand-md {
+  font-size: 18px;
+}
+
+.brand-md .brand-mark {
+  width: 24px;
+  height: 24px;
+}
+
+.brand-lg {
+  font-size: 24px;
+}
+
+.brand-lg .brand-mark {
+  width: 32px;
+  height: 32px;
+}

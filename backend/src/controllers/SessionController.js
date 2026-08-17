@@ -13,7 +13,7 @@ class SessionController {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'email and password are required' });
+      return res.status(400).json({ error: 'E-mail e senha são obrigatórios' });
     }
 
     // withPassword — we need the hash, which defaultScope hides.
@@ -22,7 +22,7 @@ class SessionController {
     // Deliberately the SAME message and status for "no such user" and "wrong
     // password". Distinguishing them would let anyone probe which emails have
     // accounts (user enumeration).
-    const invalid = { error: 'Invalid email or password' };
+    const invalid = { error: 'E-mail ou senha inválidos' };
 
     if (!user) {
       return res.status(401).json(invalid);

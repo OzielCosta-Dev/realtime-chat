@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom';
 
 import { useAuth } from '../context/AuthContext.jsx';
 import extractErrorMessage from '../utils/extractErrorMessage.js';
+import Brand from '../components/Brand.jsx';
 import './AuthForm.css';
 
 export default function LoginPage() {
@@ -43,47 +44,58 @@ export default function LoginPage() {
 
   return (
     <div className="auth-page">
-      <form className="auth-form" onSubmit={handleSubmit}>
-        <h1>Log in</h1>
+      <div className="auth-card">
+        <div className="auth-brand">
+          <Brand size="lg" />
+        </div>
 
-        {error && (
-          <p className="auth-error" role="alert">
-            {error}
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="auth-heading">
+            <h1>Bem-vindo de volta</h1>
+            <p>Entre para continuar suas conversas</p>
+          </div>
+
+          {error && (
+            <p className="auth-error" role="alert">
+              {error}
+            </p>
+          )}
+
+          <label>
+            E-mail
+            <input
+              type="email"
+              name="email"
+              value={form.email}
+              onChange={handleChange}
+              autoComplete="email"
+              placeholder="voce@exemplo.com"
+              required
+            />
+          </label>
+
+          <label>
+            Senha
+            <input
+              type="password"
+              name="password"
+              value={form.password}
+              onChange={handleChange}
+              autoComplete="current-password"
+              placeholder="••••••••"
+              required
+            />
+          </label>
+
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Entrando…' : 'Entrar'}
+          </button>
+
+          <p className="auth-switch">
+            Não tem uma conta? <Link to="/register">Cadastre-se</Link>
           </p>
-        )}
-
-        <label>
-          Email
-          <input
-            type="email"
-            name="email"
-            value={form.email}
-            onChange={handleChange}
-            autoComplete="email"
-            required
-          />
-        </label>
-
-        <label>
-          Password
-          <input
-            type="password"
-            name="password"
-            value={form.password}
-            onChange={handleChange}
-            autoComplete="current-password"
-            required
-          />
-        </label>
-
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Logging in…' : 'Log in'}
-        </button>
-
-        <p className="auth-switch">
-          Don&apos;t have an account? <Link to="/register">Register</Link>
-        </p>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

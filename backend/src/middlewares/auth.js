@@ -12,14 +12,14 @@ export default function authMiddleware(req, res, next) {
   const { authorization } = req.headers;
 
   if (!authorization) {
-    return res.status(401).json({ error: 'Authentication token not provided' });
+    return res.status(401).json({ error: 'Token de autenticação não fornecido' });
   }
 
   // Expected format: "Bearer <token>"
   const [scheme, token] = authorization.split(' ');
 
   if (scheme !== 'Bearer' || !token) {
-    return res.status(401).json({ error: 'Malformed authorization header' });
+    return res.status(401).json({ error: 'Cabeçalho de autorização inválido' });
   }
 
   try {
@@ -34,8 +34,8 @@ export default function authMiddleware(req, res, next) {
     // Distinguish "your session ended" from "this token is invalid" so the
     // frontend can log the user out silently instead of showing an error.
     if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expired', code: 'TOKEN_EXPIRED' });
+      return res.status(401).json({ error: 'Token expirado', code: 'TOKEN_EXPIRED' });
     }
-    return res.status(401).json({ error: 'Invalid token' });
+    return res.status(401).json({ error: 'Token inválido' });
   }
 }

@@ -10,12 +10,12 @@ export default function extractErrorMessage(error) {
   const data = error?.response?.data;
 
   if (!data) {
-    return 'Could not reach the server. Is the backend running?';
+    return 'Não foi possível conectar ao servidor. O backend está rodando?';
   }
 
   if (data.details?.length) {
     return data.details.map((d) => d.message).join(' ');
   }
 
-  return data.error || 'Something went wrong. Please try again.';
+  return data.error || 'Algo deu errado. Tente novamente.';
 }

@@ -14,8 +14,8 @@ class Room extends Model {
           allowNull: false,
           unique: true,
           validate: {
-            notEmpty: { msg: 'Room name cannot be empty' },
-            len: { args: [2, 60], msg: 'Room name must be 2-60 characters' },
+            notEmpty: { msg: 'O nome da sala não pode ficar vazio' },
+            len: { args: [2, 60], msg: 'O nome da sala deve ter entre 2 e 60 caracteres' },
           },
         },
         description: {

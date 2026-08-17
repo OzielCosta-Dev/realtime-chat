@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import { useAuth } from '../context/AuthContext.jsx';
 import { useSocket } from '../context/SocketContext.jsx';
 import { getRoom, getRoomMembers } from '../api/rooms.js';
 import { listMessages } from '../api/messages.js';
 import extractErrorMessage from '../utils/extractErrorMessage.js';
+import Avatar from '../components/Avatar.jsx';
 import './RoomPage.css';
 
 // How long to wait after the last keystroke before telling the room this
@@ -22,18 +23,19 @@ const TYPING_STOP_DELAY_MS = 2000;
 const TYPING_EXPIRE_MS = 4000;
 
 function formatTypingLabel(names) {
-  if (names.length === 1) return `${names[0]} is typing…`;
-  if (names.length === 2) return `${names[0]} and ${names[1]} are typing…`;
-  return `${names[0]}, ${names[1]} and ${names.length - 2} others are typing…`;
+  if (names.length === 1) return `${names[0]} está digitando…`;
+  if (names.length === 2) return `${names[0]} e ${names[1]} estão digitando…`;
+  return `${names[0]}, ${names[1]} e mais ${names.length - 2} estão digitando…`;
 }
 
 export default function RoomPage() {
   const { id: roomId } = useParams();
   const { user } = useAuth();
   const { socket, isConnected } = useSocket();
+  const navigate = useNavigate();
 
   const [room, setRoom] = useState(null);
-  const [messages, setMessages] = useState(null); // null = loading, [] = loaded-empty
+  const [messages, setMessages] = useState(null); // null = carregando, [] = carregado-vazio
   const [hasMore, setHasMore] = useState(false);
   const [isLoadingEarlier, setIsLoadingEarlier] = useState(false);
   const [accessError, setAccessError] = useState('');
@@ -96,7 +98,7 @@ export default function RoomPage() {
     // it until now.
     socket.emit('room:subscribe', { roomId }, (response) => {
       if (!response?.ok) {
-        setAccessError(response?.error || 'Could not subscribe to this room');
+        setAccessError(response?.error || 'Não foi possível entrar nesta sala');
       }
     });
 
@@ -109,12 +111,6 @@ export default function RoomPage() {
       setMessages((current) => (current ? [...current, message] : [message]));
     }
 
-    // Presence events aren't scoped to a room server-side (the payload has
-    // no roomId — see backend/src/sockets/index.js), because a user only
-    // needs to know presence for people who share at least one room with
-    // them, which io.to(roomId) already guarantees by WHO receives the
-    // event. We only need to check "is this person in the list I'm
-    // showing" here, not "is this the right room".
     // Fires when someone joins THIS room while we're already looking at it
     // (see backend/src/sockets/index.js's room:subscribe handler) — without
     // this, the member strip would only ever reflect who was here at the
@@ -161,12 +157,22 @@ export default function RoomPage() {
       setTypingUsers((current) => current.filter((u) => u.userId !== userId));
     }
 
+    // Someone (possibly the creator, from a different tab) deleted this
+    // room while we were looking at it — see RoomController.destroy on the
+    // backend. There's nothing left to show; leave gracefully instead of
+    // sitting in a chat whose room no longer exists.
+    function handleRoomDeleted({ roomId: deletedRoomId }) {
+      if (deletedRoomId !== roomId) return;
+      navigate('/', { state: { notice: 'Esta sala foi excluída.' } });
+    }
+
     socket.on('message:new', handleNewMessage);
     socket.on('member:joined', handleMemberJoined);
     socket.on('presence:online', handlePresenceOnline);
     socket.on('presence:offline', handlePresenceOffline);
     socket.on('typing:start', handleTypingStart);
     socket.on('typing:stop', handleTypingStop);
+    socket.on('room:deleted', handleRoomDeleted);
 
     // Removes THESE listeners specifically (same function references) when
     // the room changes or the component unmounts. The socket itself is NOT
@@ -179,6 +185,7 @@ export default function RoomPage() {
       socket.off('presence:offline', handlePresenceOffline);
       socket.off('typing:start', handleTypingStart);
       socket.off('typing:stop', handleTypingStop);
+      socket.off('room:deleted', handleRoomDeleted);
 
       // Leaving the room while still "typing" (e.g. navigated away mid
       // keystroke) would otherwise leave every other member's UI stuck
@@ -193,7 +200,7 @@ export default function RoomPage() {
       typingExpireTimersRef.current.clear();
       setTypingUsers([]);
     };
-  }, [socket, isConnected, roomId]);
+  }, [socket, isConnected, roomId, navigate]);
 
   // --- autoscroll to the newest message ------------------------------------
   const lastMessageId = messages?.[messages.length - 1]?.id;
@@ -268,7 +275,7 @@ export default function RoomPage() {
 
     // The message itself is proof enough that typing stopped — tell the
     // room immediately instead of waiting out TYPING_STOP_DELAY_MS, or
-    // "Alice is typing…" would linger for up to 2s after her message
+    // "Alice está digitando…" would linger for up to 2s after her message
     // already arrived.
     if (isTypingRef.current) {
       clearTimeout(typingStopTimerRef.current);
@@ -283,7 +290,7 @@ export default function RoomPage() {
     // temporary-vs-confirmed state to reconcile.
     socket.emit('message:send', { roomId, content: draft }, (response) => {
       if (!response?.ok) {
-        setSendError(response?.error || 'Failed to send message');
+        setSendError(response?.error || 'Falha ao enviar mensagem');
         return;
       }
       setDraft('');
@@ -292,11 +299,11 @@ export default function RoomPage() {
 
   if (accessError && messages === null) {
     return (
-      <div className="room-page">
+      <div className="room-page room-page-error">
         <p className="form-error" role="alert">
           {accessError}
         </p>
-        <Link to="/">&larr; Back to rooms</Link>
+        <Link to="/">&larr; Voltar para as salas</Link>
       </div>
     );
   }
@@ -304,14 +311,11 @@ export default function RoomPage() {
   return (
     <div className="room-page">
       <header className="room-page-header">
-        <Link to="/" className="back-link">
-          &larr;
-        </Link>
-        <div>
+        <div className="room-page-heading">
           <h1>{room?.name ?? '…'}</h1>
           {room?.description && <p>{room.description}</p>}
         </div>
-        {!isConnected && <span className="connection-flag">Connecting…</span>}
+        {!isConnected && <span className="connection-flag">Conectando…</span>}
       </header>
 
       {members.length > 0 && (
@@ -328,19 +332,34 @@ export default function RoomPage() {
       <div className="message-list" ref={messageListRef}>
         {hasMore && (
           <button type="button" className="load-earlier" onClick={handleLoadEarlier} disabled={isLoadingEarlier}>
-            {isLoadingEarlier ? 'Loading…' : 'Load earlier messages'}
+            {isLoadingEarlier ? 'Carregando…' : 'Carregar mensagens anteriores'}
           </button>
         )}
 
-        {messages === null && <p className="message-list-status">Loading messages…</p>}
-        {messages?.length === 0 && <p className="message-list-status">No messages yet — say hello.</p>}
+        {messages === null && <p className="message-list-status">Carregando mensagens…</p>}
+        {messages?.length === 0 && <p className="message-list-status">Nenhuma mensagem ainda — diga olá.</p>}
 
-        {messages?.map((message) => {
+        {messages?.map((message, index) => {
           const isOwn = message.author?.id === user?.id;
+          // Groups consecutive messages from the same author (like Slack):
+          // only the first bubble in a run gets the avatar + name, so a
+          // burst of short messages doesn't repeat the same label five
+          // times in a row.
+          const previous = messages[index - 1];
+          const isGroupStart = !previous || previous.author?.id !== message.author?.id;
+
           return (
-            <div key={message.id} className={`message-row ${isOwn ? 'own' : ''}`}>
+            <div
+              key={message.id}
+              className={`message-row ${isOwn ? 'own' : ''} ${isGroupStart ? 'group-start' : ''}`}
+            >
+              {!isOwn && (
+                <div className="message-avatar-slot">
+                  {isGroupStart && <Avatar name={message.author?.name} size={30} />}
+                </div>
+              )}
               <div className="message-bubble">
-                {!isOwn && <span className="message-author">{message.author?.name}</span>}
+                {!isOwn && isGroupStart && <span className="message-author">{message.author?.name}</span>}
                 <span className="message-content">{message.content}</span>
                 <span className="message-time">
                   {new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -367,12 +386,12 @@ export default function RoomPage() {
           type="text"
           value={draft}
           onChange={handleDraftChange}
-          placeholder={isConnected ? 'Type a message…' : 'Connecting…'}
+          placeholder={isConnected ? 'Digite uma mensagem…' : 'Conectando…'}
           disabled={!isConnected}
           maxLength={4000}
         />
         <button type="submit" disabled={!isConnected || !draft.trim()}>
-          Send
+          Enviar
         </button>
       </form>
     </div>

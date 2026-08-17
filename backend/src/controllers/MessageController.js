@@ -26,7 +26,7 @@ class MessageController {
     const { before } = req.query;
 
     if (!isUuid(roomId)) {
-      return res.status(400).json({ error: 'Invalid room id' });
+      return res.status(400).json({ error: 'ID de sala inválido' });
     }
 
     // Only members can read a room's history. Checking here keeps the rule in
@@ -37,7 +37,7 @@ class MessageController {
     });
 
     if (!membership) {
-      return res.status(403).json({ error: 'You are not a member of this room' });
+      return res.status(403).json({ error: 'Você não é membro desta sala' });
     }
 
     // Clamp the limit so a client can't ask for the entire table.
@@ -51,7 +51,7 @@ class MessageController {
     if (before) {
       const beforeDate = new Date(before);
       if (Number.isNaN(beforeDate.getTime())) {
-        return res.status(400).json({ error: 'Invalid `before` timestamp' });
+        return res.status(400).json({ error: 'Parâmetro de data inválido' });
       }
       where.createdAt = { [Op.lt]: beforeDate };
     }

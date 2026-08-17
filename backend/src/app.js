@@ -31,7 +31,7 @@ app.use(routes);
 
 // 404 for anything unmatched above.
 app.use((_req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+  res.status(404).json({ error: 'Rota não encontrada' });
 });
 
 // Central error handler. Express identifies it by its four arguments —
@@ -44,14 +44,14 @@ app.use((err, _req, res, _next) => {
   // return the specific messages so the UI can show them on the right field.
   if (err.name === 'SequelizeValidationError') {
     return res.status(400).json({
-      error: 'Validation failed',
+      error: 'Falha na validação',
       details: err.errors.map((e) => ({ field: e.path, message: e.message })),
     });
   }
 
   console.error('[error]', err);
   return res.status(err.status || 500).json({
-    error: err.message || 'Internal server error',
+    error: err.message || 'Erro interno do servidor',
   });
 });
 

@@ -1,0 +1,230 @@
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  background: var(--color-surface-alt);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.sidebar-header {
+  padding: 20px 20px 16px;
+}
+
+.sidebar-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-tertiary);
+}
+
+.icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.icon-button:hover {
+  background: var(--color-border);
+  color: var(--color-text);
+}
+
+.create-room-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 16px 16px;
+}
+
+.create-room-form input {
+  font: inherit;
+  font-size: 13px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+}
+
+.create-room-form input:focus-visible {
+  border-color: var(--color-primary);
+}
+
+.create-room-form button {
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: #fff;
+  cursor: pointer;
+}
+
+.create-room-form button:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.create-room-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sidebar-error {
+  margin: 0 16px 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+  font-size: 12px;
+}
+
+.sidebar-status {
+  padding: 4px 16px;
+  font-size: 13px;
+  color: var(--color-text-tertiary);
+}
+
+.room-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.room-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.12s ease;
+}
+
+.room-row:hover {
+  background: var(--color-border);
+}
+
+.room-row.active {
+  background: var(--color-primary-soft);
+}
+
+.room-row.active .room-row-name {
+  color: var(--color-primary-hover);
+}
+
+.room-row:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.room-row-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.room-row-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.room-row-description {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.room-row-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-primary);
+  width: fit-content;
+}
+
+.room-row-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-tertiary);
+  opacity: 0;
+  transition: opacity 0.12s ease, background-color 0.12s ease, color 0.12s ease;
+  flex-shrink: 0;
+}
+
+.room-row:hover .room-row-delete {
+  opacity: 1;
+}
+
+.room-row-delete:hover {
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.sidebar-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.sidebar-user {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  transition: background-color 0.12s ease;
+}
+
+.sidebar-user:hover {
+  background: var(--color-border);
+}
+
+.sidebar-user-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

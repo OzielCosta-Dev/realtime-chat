@@ -13,8 +13,8 @@ class Message extends Model {
           type: DataTypes.TEXT,
           allowNull: false,
           validate: {
-            notEmpty: { msg: 'Message cannot be empty' },
-            len: { args: [1, 4000], msg: 'Message must be under 4000 characters' },
+            notEmpty: { msg: 'A mensagem não pode ficar vazia' },
+            len: { args: [1, 4000], msg: 'A mensagem deve ter no máximo 4000 caracteres' },
           },
         },
         userId: {

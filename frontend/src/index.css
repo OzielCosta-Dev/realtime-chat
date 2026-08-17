@@ -1,6 +1,50 @@
+/*
+ * Design tokens — every color, radius and shadow the app uses lives here as
+ * a CSS custom property. Components reference var(--color-primary) instead
+ * of hardcoding #5046e5 directly, so changing the whole app's palette is a
+ * one-file edit instead of a find-and-replace across a dozen component
+ * stylesheets. This is the same idea as a design system's "tokens" layer in
+ * a real product team.
+ */
 :root {
-  color-scheme: light dark;
-  font: 16px/1.5 system-ui, 'Segoe UI', Roboto, sans-serif;
+  color-scheme: light;
+
+  /* Brand */
+  --color-primary: #5046e5;
+  --color-primary-hover: #4338ca;
+  --color-primary-soft: #eef0ff;
+
+  /* Neutrals — a slightly violet-tinted gray scale (not pure gray) reads
+     as more intentional than a default black/white/gray-500 palette. */
+  --color-bg: #f6f6f9;
+  --color-surface: #ffffff;
+  --color-surface-alt: #fafafa;
+  --color-border: #e6e6ec;
+  --color-border-strong: #d3d3dd;
+  --color-text: #16161d;
+  --color-text-secondary: #6c6c78;
+  --color-text-tertiary: #9d9da8;
+
+  /* Semantic */
+  --color-success: #16a34a;
+  --color-success-soft: #dcfce7;
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-soft: #fef2f2;
+
+  /* Scale — reused everywhere instead of one-off pixel values, so spacing
+     and rounding stay consistent across components built at different
+     times. */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(15, 15, 20, 0.06);
+  --shadow-md: 0 6px 16px rgba(15, 15, 20, 0.08);
+  --shadow-lg: 0 16px 40px rgba(15, 15, 20, 0.14);
+
+  font: 15px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Roboto, Helvetica, Arial, sans-serif;
 }
 
 * {
@@ -10,10 +54,45 @@
 body {
   margin: 0;
   min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
 }
 
 #root {
   min-height: 100vh;
+}
+
+h1, h2, h3 {
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+button, input {
+  font-family: inherit;
+}
+
+/* A visible focus ring for keyboard navigation, but only the ACCENT color
+   changes on :focus-visible rather than every mouse click — matches how
+   modern browsers already treat :focus vs :focus-visible, made explicit
+   here so it's consistent across browsers and doesn't rely on the default
+   (often a garish blue outline that clashes with the palette above). */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* A slim, understated scrollbar for the message list and sidebar — the
+   default scrollbar is one of the more obvious "unstyled app" tells. */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .page-loading {
@@ -21,4 +100,5 @@ body {
   align-items: center;
   justify-content: center;
   height: 100vh;
+  color: var(--color-text-secondary);
 }

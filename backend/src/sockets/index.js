@@ -64,12 +64,12 @@ export default function registerSocketHandlers(io) {
       const ack = typeof callback === 'function' ? callback : () => {};
 
       if (!isUuid(roomId)) {
-        return ack({ ok: false, error: 'Invalid room id' });
+        return ack({ ok: false, error: 'ID de sala inválido' });
       }
 
       const membership = await RoomMember.findOne({ where: { userId, roomId } });
       if (!membership) {
-        return ack({ ok: false, error: 'You are not a member of this room' });
+        return ack({ ok: false, error: 'Você não é membro desta sala' });
       }
 
       const alreadySubscribed = roomIds.includes(roomId);
@@ -106,14 +106,14 @@ export default function registerSocketHandlers(io) {
 
       try {
         if (!isUuid(roomId)) {
-          return ack({ ok: false, error: 'Invalid room id' });
+          return ack({ ok: false, error: 'ID de sala inválido' });
         }
 
         // socket.rooms is maintained by Socket.io itself and only ever
         // contains rooms we explicitly joined after checking membership
         // (above, and on connect) — so this check is free, no DB hit needed.
         if (!socket.rooms.has(roomId)) {
-          return ack({ ok: false, error: 'You are not subscribed to this room' });
+          return ack({ ok: false, error: 'Você não está inscrito nesta sala' });
         }
 
         const message = await Message.create({ content, userId, roomId });
@@ -130,7 +130,7 @@ export default function registerSocketHandlers(io) {
           return ack({ ok: false, error: error.errors[0].message });
         }
         console.error('[socket message:send]', error);
-        return ack({ ok: false, error: 'Failed to send message' });
+        return ack({ ok: false, error: 'Falha ao enviar mensagem' });
       }
     });
 

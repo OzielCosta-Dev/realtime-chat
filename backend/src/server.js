@@ -30,6 +30,14 @@ async function start() {
 
     registerSocketHandlers(io);
 
+    // app.set/app.get is Express's own key-value store, scoped to this one
+    // app instance. This is what lets an HTTP controller (RoomController.
+    // destroy) reach the socket server to broadcast an event — req.app is
+    // always available inside a controller, so req.app.get('io') gets it
+    // there without a module-level global or a circular import between
+    // app.js and sockets/index.js.
+    app.set('io', io);
+
     httpServer.listen(PORT, () => {
       console.log(`[server] listening on http://localhost:${PORT}`);
     });

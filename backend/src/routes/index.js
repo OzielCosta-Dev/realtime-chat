@@ -24,6 +24,7 @@ routes.post('/rooms', RoomController.store);
 routes.get('/rooms/:id', RoomController.show);
 routes.post('/rooms/:id/join', RoomController.join);
 routes.get('/rooms/:id/members', RoomController.members);
+routes.delete('/rooms/:id', RoomController.destroy);
 
 routes.get('/rooms/:id/messages', MessageController.index);
 
