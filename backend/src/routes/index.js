@@ -21,6 +21,7 @@ routes.get('/users/me', UserController.show);
 
 routes.get('/rooms', RoomController.index);
 routes.post('/rooms', RoomController.store);
+routes.get('/rooms/:id', RoomController.show);
 routes.post('/rooms/:id/join', RoomController.join);
 routes.get('/rooms/:id/members', RoomController.members);
 

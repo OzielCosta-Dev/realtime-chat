@@ -29,6 +29,34 @@ class RoomController {
     );
   }
 
+  /**
+   * GET /rooms/:id — single room, for the chat header.
+   *
+   * Open to any authenticated user, same as index() and members() below —
+   * a room's NAME isn't sensitive. Only its message CONTENT is gated to
+   * members (see MessageController), the same way a Slack public channel
+   * shows its name to everyone but not its history.
+   */
+  async show(req, res) {
+    const { id } = req.params;
+
+    if (!isUuid(id)) {
+      return res.status(400).json({ error: 'Invalid room id' });
+    }
+
+    const room = await Room.findByPk(id, {
+      include: [{ model: User, as: 'creator', attributes: ['id', 'name'] }],
+    });
+
+    if (!room) {
+      return res.status(404).json({ error: 'Room not found' });
+    }
+
+    const membership = await RoomMember.findOne({ where: { userId: req.userId, roomId: id } });
+
+    return res.json({ ...room.toJSON(), isMember: Boolean(membership) });
+  }
+
   /** POST /rooms — create a room; the creator joins it automatically */
   async store(req, res) {
     const { name, description } = req.body;
