@@ -15,3 +15,7 @@ export function createRoom({ name, description }) {
 export function joinRoom(roomId) {
   return http.post(`/rooms/${roomId}/join`).then((res) => res.data);
 }
+
+export function getRoomMembers(roomId) {
+  return http.get(`/rooms/${roomId}/members`).then((res) => res.data);
+}

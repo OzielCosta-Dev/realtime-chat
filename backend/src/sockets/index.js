@@ -72,8 +72,18 @@ export default function registerSocketHandlers(io) {
         return ack({ ok: false, error: 'You are not a member of this room' });
       }
 
+      const alreadySubscribed = roomIds.includes(roomId);
       socket.join(roomId);
-      if (!roomIds.includes(roomId)) roomIds.push(roomId);
+      if (!alreadySubscribed) roomIds.push(roomId);
+
+      // Tell anyone else CURRENTLY VIEWING this room's chat that a new
+      // member showed up, so their member list updates live instead of
+      // only on their next page load. Only on a genuinely new subscription
+      // — re-entering a room you're already viewing (e.g. clicking back
+      // and forward) shouldn't re-announce you.
+      if (!alreadySubscribed) {
+        socket.to(roomId).emit('member:joined', { id: userId, name });
+      }
 
       return ack({ ok: true });
     });
