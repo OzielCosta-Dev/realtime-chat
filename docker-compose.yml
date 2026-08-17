@@ -1,6 +1,26 @@
-# For now this file defines ONLY the database.
-# In step 7 we'll add the backend and frontend services here too, so the whole
-# stack starts with a single `docker compose up`.
+# Brings up the whole stack — database, API server, and web client — with
+# one command: `docker compose up --build`.
+#
+# The trickiest thing in this file is that there are TWO kinds of network
+# path here, and they are not interchangeable:
+#
+#   1. CONTAINER-TO-CONTAINER (backend -> db): Docker Compose puts every
+#      service on the same private network and gives each one a hostname
+#      equal to its service name. The backend reaches Postgres at
+#      "db:5432" — not "localhost:5432" — because from inside the backend
+#      container, "localhost" means the backend container itself.
+#
+#   2. BROWSER-TO-CONTAINER (your browser -> backend): the frontend's
+#      React code runs in YOUR BROWSER, on your actual machine — not
+#      inside any container, not on the Docker network at all. So it has
+#      to reach the backend the same way anything on your host machine
+#      does: via the port Docker published to the HOST, i.e.
+#      "http://localhost:3001". "http://backend:3001" would fail — your
+#      browser has never heard of a host named "backend".
+#
+# Watch for DB_HOST below (path 1: the service name "db") versus
+# VITE_API_URL (path 2: "localhost") — same file, different rule, because
+# one is server-to-server and the other is browser-to-server.
 
 services:
   db:
@@ -43,6 +63,63 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    container_name: chat-backend
+    restart: unless-stopped
+    environment:
+      PORT: 3001
+      # "db", the service name above — NOT "localhost". See the networking
+      # note at the top of this file: this is container-to-container
+      # traffic, which travels over Docker's internal network.
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: chat_app
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      # ${JWT_SECRET} is filled in from the .env file next to this one
+      # (docker compose reads it automatically) — never hardcoded here,
+      # so this file stays safe to commit.
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: 7d
+    ports:
+      - "3001:3001"
+    depends_on:
+      # Waits for db's healthcheck to report healthy, not just "started" —
+      # a container can be running while Postgres is still initializing
+      # inside it. Without this, the backend could try to connect before
+      # Postgres is actually accepting connections and crash on boot. This
+      # is exactly why we added db's healthcheck back in step 1.
+      db:
+        condition: service_healthy
+    healthcheck:
+      # Reuses the /health endpoint from backend/src/app.js — the same one
+      # built back in step 2 specifically so something could ask "is this
+      # actually working," not just "is the process running."
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Baked into the compiled JS at BUILD time (see frontend/Dockerfile).
+        # "localhost", not "backend" — this is the browser-to-container
+        # path, not container-to-container. The browser running this code
+        # has never heard of a Docker service named "backend".
+        VITE_API_URL: http://localhost:3001
+    container_name: chat-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      backend:
+        condition: service_healthy
 
 # Declares the named volume. Docker creates and manages it; it persists
 # independently of the container's lifecycle.

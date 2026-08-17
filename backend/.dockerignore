@@ -1,0 +1,8 @@
+# Never bake dependencies or secrets into the image — node_modules gets
+# reinstalled inside the container (different OS/arch than your machine
+# in general — Alpine Linux, not Windows), and .env holds real credentials
+# that belong in docker-compose's `environment:` block, not in an image
+# layer anyone with the image can inspect.
+node_modules
+.env
+npm-debug.log*
